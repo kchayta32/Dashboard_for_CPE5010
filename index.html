@@ -19,6 +19,10 @@
                     <h1 class="course-title">📚 CPE5010 (001) 47/4734</h1>
                     <h2 class="course-name">การออกแบบและพัฒนาเกม</h2>
                     <p class="instructor">ผศ.ดร. รวิ อุตตมธนินทร์</p>
+                    <div class="firebase-status" id="firebaseStatus">
+                        <span class="status-dot connecting"></span>
+                        <span class="status-text">กำลังเชื่อมต่อ Firebase...</span>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" onclick="saveData()">
@@ -218,6 +222,38 @@
     </div>
 
     <script src="app.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0msL_J9X9NXMyIrUdQY_59gedMfvpoEE",
+            authDomain: "dashboardforstudent.firebaseapp.com",
+            projectId: "dashboardforstudent",
+            storageBucket: "dashboardforstudent.firebasestorage.app",
+            messagingSenderId: "542979977304",
+            appId: "1:542979977304:web:59948bec8d82c29b861a2d",
+            measurementId: "G-SK4M4DFXC3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.firebaseDB = db;
+        window.firebaseDoc = doc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseOnSnapshot = onSnapshot;
+
+        // Signal that Firebase is ready
+        window.dispatchEvent(new Event('firebase-ready'));
+        console.log('🔥 Firebase initialized successfully');
+    </script>
 </body>
 
 </html>
