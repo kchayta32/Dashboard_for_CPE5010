@@ -176,6 +176,41 @@ async function saveState() {
     await saveStateToFirebase();
 }
 
+// Manual refresh from Firebase
+async function refreshFromFirebase() {
+    if (!firebaseReady || !window.firebaseDB) {
+        showToast('Firebase ยังไม่พร้อม', 'error');
+        return;
+    }
+
+    try {
+        updateFirebaseStatus('connecting', 'กำลังรีเฟรช...');
+        const docRef = window.firebaseDoc(window.firebaseDB, 'submissions', FIREBASE_DOC_ID);
+        const docSnap = await window.firebaseGetDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const localCurrentAssignmentId = state.currentAssignmentId;
+
+            state = {
+                groups: data.groups || [...GROUPS_DATA],
+                assignments: data.assignments || [...DEFAULT_ASSIGNMENTS],
+                submissions: data.submissions || { ...DEFAULT_SUBMISSIONS },
+                currentAssignmentId: localCurrentAssignmentId || 1
+            };
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            render();
+            updateFirebaseStatus('connected', '🔥 รีเฟรชสำเร็จ (sync: ' + new Date().toLocaleTimeString('th-TH') + ')');
+            showToast('รีเฟรชข้อมูลจาก Firebase สำเร็จ', 'success');
+        }
+    } catch (e) {
+        console.error('Refresh error:', e);
+        updateFirebaseStatus('error', '❌ รีเฟรชไม่สำเร็จ');
+        showToast('เกิดข้อผิดพลาดในการรีเฟรช', 'error');
+    }
+}
+
 async function saveStateToFirebase() {
     if (!firebaseReady || !window.firebaseDB) {
         showToast('บันทึกใน localStorage (Firebase ยังไม่พร้อม)', 'success');
@@ -188,13 +223,13 @@ async function saveStateToFirebase() {
             groups: state.groups,
             assignments: state.assignments,
             submissions: state.submissions,
-            currentAssignmentId: state.currentAssignmentId,
             updatedAt: new Date().toISOString()
         });
+        console.log('✅ Saved to Firebase at', new Date().toLocaleTimeString());
         showToast('บันทึกข้อมูลไปยัง Firebase สำเร็จ', 'success');
     } catch (e) {
         console.error('Firebase save error:', e);
-        showToast('เกิดข้อผิดพลาดในการบันทึกไปยัง Firebase', 'error');
+        showToast('เกิดข้อผิดพลาดในการบันทึกไปยัง Firebase: ' + e.message, 'error');
     }
 }
 
