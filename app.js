@@ -51,9 +51,79 @@ let state = {
     currentAssignmentId: 1
 };
 
-// ===== LocalStorage Functions =====
+// ===== Firebase & Storage Functions =====
+
+const FIREBASE_DOC_ID = 'cpe5010_submissions';
+let firebaseReady = false;
+let unsubscribeFirebase = null;
+
+// Wait for Firebase to be ready
+window.addEventListener('firebase-ready', () => {
+    firebaseReady = true;
+    console.log('📡 Firebase ready, syncing data...');
+    initFirebaseSync();
+});
+
+// Update Firebase status indicator
+function updateFirebaseStatus(status, message) {
+    const statusEl = document.getElementById('firebaseStatus');
+    if (!statusEl) return;
+
+    const dot = statusEl.querySelector('.status-dot');
+    const text = statusEl.querySelector('.status-text');
+
+    dot.className = 'status-dot ' + status;
+    text.textContent = message;
+}
+
+async function initFirebaseSync() {
+    if (!firebaseReady || !window.firebaseDB) return;
+
+    try {
+        const docRef = window.firebaseDoc(window.firebaseDB, 'submissions', FIREBASE_DOC_ID);
+
+        // Set up real-time listener
+        unsubscribeFirebase = window.firebaseOnSnapshot(docRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                state = {
+                    groups: data.groups || [...GROUPS_DATA],
+                    assignments: data.assignments || [...DEFAULT_ASSIGNMENTS],
+                    submissions: data.submissions || { ...DEFAULT_SUBMISSIONS },
+                    currentAssignmentId: data.currentAssignmentId || 1
+                };
+                render();
+                updateFirebaseStatus('connected', '🔥 เชื่อมต่อ Firebase แล้ว');
+                console.log('📥 Data synced from Firebase');
+            } else {
+                // First time - save default data to Firebase
+                saveStateToFirebase();
+                updateFirebaseStatus('connected', '🔥 เชื่อมต่อ Firebase แล้ว (ข้อมูลใหม่)');
+            }
+        }, (error) => {
+            console.error('Firebase sync error:', error);
+            updateFirebaseStatus('error', '❌ เชื่อมต่อ Firebase ไม่สำเร็จ');
+            showToast('เกิดข้อผิดพลาดในการซิงค์ข้อมูล', 'error');
+        });
+
+    } catch (e) {
+        console.error('Firebase init error:', e);
+        updateFirebaseStatus('error', '❌ เชื่อมต่อ Firebase ไม่สำเร็จ');
+        loadStateFromLocal();
+    }
+}
 
 function loadState() {
+    // Try localStorage first for immediate display
+    loadStateFromLocal();
+
+    // Firebase will sync when ready
+    if (firebaseReady) {
+        initFirebaseSync();
+    }
+}
+
+function loadStateFromLocal() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
@@ -83,13 +153,37 @@ function initializeDefaultState() {
     saveState();
 }
 
-function saveState() {
+async function saveState() {
+    // Save to localStorage immediately
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        showToast('บันทึกข้อมูลสำเร็จ', 'success');
     } catch (e) {
-        console.error('Error saving state:', e);
-        showToast('เกิดข้อผิดพลาดในการบันทึก', 'error');
+        console.error('LocalStorage save error:', e);
+    }
+
+    // Save to Firebase
+    await saveStateToFirebase();
+}
+
+async function saveStateToFirebase() {
+    if (!firebaseReady || !window.firebaseDB) {
+        showToast('บันทึกใน localStorage (Firebase ยังไม่พร้อม)', 'success');
+        return;
+    }
+
+    try {
+        const docRef = window.firebaseDoc(window.firebaseDB, 'submissions', FIREBASE_DOC_ID);
+        await window.firebaseSetDoc(docRef, {
+            groups: state.groups,
+            assignments: state.assignments,
+            submissions: state.submissions,
+            currentAssignmentId: state.currentAssignmentId,
+            updatedAt: new Date().toISOString()
+        });
+        showToast('บันทึกข้อมูลไปยัง Firebase สำเร็จ', 'success');
+    } catch (e) {
+        console.error('Firebase save error:', e);
+        showToast('เกิดข้อผิดพลาดในการบันทึกไปยัง Firebase', 'error');
     }
 }
 
