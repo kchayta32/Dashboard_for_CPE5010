@@ -86,15 +86,26 @@ async function initFirebaseSync() {
         unsubscribeFirebase = window.firebaseOnSnapshot(docRef, (doc) => {
             if (doc.exists()) {
                 const data = doc.data();
+                // Keep local currentAssignmentId (user preference)
+                const localCurrentAssignmentId = state.currentAssignmentId;
+
                 state = {
                     groups: data.groups || [...GROUPS_DATA],
                     assignments: data.assignments || [...DEFAULT_ASSIGNMENTS],
                     submissions: data.submissions || { ...DEFAULT_SUBMISSIONS },
-                    currentAssignmentId: data.currentAssignmentId || 1
+                    currentAssignmentId: localCurrentAssignmentId || 1
                 };
+
+                // Save to localStorage for offline use
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                } catch (e) {
+                    console.error('LocalStorage save error:', e);
+                }
+
                 render();
-                updateFirebaseStatus('connected', '🔥 เชื่อมต่อ Firebase แล้ว');
-                console.log('📥 Data synced from Firebase');
+                updateFirebaseStatus('connected', '🔥 เชื่อมต่อ Firebase แล้ว (sync: ' + new Date().toLocaleTimeString('th-TH') + ')');
+                console.log('📥 Data synced from Firebase at', new Date().toLocaleTimeString());
             } else {
                 // First time - save default data to Firebase
                 saveStateToFirebase();
@@ -102,13 +113,13 @@ async function initFirebaseSync() {
             }
         }, (error) => {
             console.error('Firebase sync error:', error);
-            updateFirebaseStatus('error', '❌ เชื่อมต่อ Firebase ไม่สำเร็จ');
-            showToast('เกิดข้อผิดพลาดในการซิงค์ข้อมูล', 'error');
+            updateFirebaseStatus('error', '❌ Firebase Error: ' + error.message);
+            showToast('เกิดข้อผิดพลาดในการซิงค์ข้อมูล: ' + error.message, 'error');
         });
 
     } catch (e) {
         console.error('Firebase init error:', e);
-        updateFirebaseStatus('error', '❌ เชื่อมต่อ Firebase ไม่สำเร็จ');
+        updateFirebaseStatus('error', '❌ Firebase Error: ' + e.message);
         loadStateFromLocal();
     }
 }
