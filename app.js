@@ -96,61 +96,34 @@ async function initFirebaseSync() {
                     currentAssignmentId: localCurrentAssignmentId || 1
                 };
 
-                // Save to localStorage for offline use
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                } catch (e) {
-                    console.error('LocalStorage save error:', e);
-                }
-
                 render();
-                updateFirebaseStatus('connected', '🔥 เชื่อมต่อ Firebase แล้ว (sync: ' + new Date().toLocaleTimeString('th-TH') + ')');
+                updateFirebaseStatus('connected', '🔥 Firebase (sync: ' + new Date().toLocaleTimeString('th-TH') + ')');
                 console.log('📥 Data synced from Firebase at', new Date().toLocaleTimeString());
             } else {
                 // First time - save default data to Firebase
                 saveStateToFirebase();
-                updateFirebaseStatus('connected', '🔥 เชื่อมต่อ Firebase แล้ว (ข้อมูลใหม่)');
+                updateFirebaseStatus('connected', '🔥 Firebase (ข้อมูลใหม่)');
             }
         }, (error) => {
             console.error('Firebase sync error:', error);
             updateFirebaseStatus('error', '❌ Firebase Error: ' + error.message);
-            showToast('เกิดข้อผิดพลาดในการซิงค์ข้อมูล: ' + error.message, 'error');
+            showToast('เกิดข้อผิดพลาดในการซิงค์: ' + error.message, 'error');
         });
 
     } catch (e) {
         console.error('Firebase init error:', e);
         updateFirebaseStatus('error', '❌ Firebase Error: ' + e.message);
-        loadStateFromLocal();
+        // No fallback - just use default state
+        initializeDefaultState();
     }
 }
 
 function loadState() {
-    // Try localStorage first for immediate display
-    loadStateFromLocal();
+    // Initialize with default state, Firebase will sync when ready
+    initializeDefaultState();
 
-    // Firebase will sync when ready
     if (firebaseReady) {
         initFirebaseSync();
-    }
-}
-
-function loadStateFromLocal() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            state = {
-                groups: parsed.groups || [...GROUPS_DATA],
-                assignments: parsed.assignments || [...DEFAULT_ASSIGNMENTS],
-                submissions: parsed.submissions || { ...DEFAULT_SUBMISSIONS },
-                currentAssignmentId: parsed.currentAssignmentId || 1
-            };
-        } catch (e) {
-            console.error('Error loading state:', e);
-            initializeDefaultState();
-        }
-    } else {
-        initializeDefaultState();
     }
 }
 
@@ -161,25 +134,17 @@ function initializeDefaultState() {
         submissions: { ...DEFAULT_SUBMISSIONS },
         currentAssignmentId: 1
     };
-    saveState();
 }
 
 async function saveState() {
-    // Save to localStorage immediately
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-        console.error('LocalStorage save error:', e);
-    }
-
-    // Save to Firebase
+    // Save to Firebase only
     await saveStateToFirebase();
 }
 
 // Manual refresh from Firebase
 async function refreshFromFirebase() {
     if (!firebaseReady || !window.firebaseDB) {
-        showToast('Firebase ยังไม่พร้อม', 'error');
+        showToast('Firebase ยังไม่พร้อม กรุณารอสักครู่', 'error');
         return;
     }
 
@@ -199,21 +164,20 @@ async function refreshFromFirebase() {
                 currentAssignmentId: localCurrentAssignmentId || 1
             };
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             render();
-            updateFirebaseStatus('connected', '🔥 รีเฟรชสำเร็จ (sync: ' + new Date().toLocaleTimeString('th-TH') + ')');
+            updateFirebaseStatus('connected', '🔥 รีเฟรชสำเร็จ (' + new Date().toLocaleTimeString('th-TH') + ')');
             showToast('รีเฟรชข้อมูลจาก Firebase สำเร็จ', 'success');
         }
     } catch (e) {
         console.error('Refresh error:', e);
         updateFirebaseStatus('error', '❌ รีเฟรชไม่สำเร็จ');
-        showToast('เกิดข้อผิดพลาดในการรีเฟรช', 'error');
+        showToast('เกิดข้อผิดพลาดในการรีเฟรช: ' + e.message, 'error');
     }
 }
 
 async function saveStateToFirebase() {
     if (!firebaseReady || !window.firebaseDB) {
-        showToast('บันทึกใน localStorage (Firebase ยังไม่พร้อม)', 'success');
+        showToast('⚠️ Firebase ยังไม่พร้อม ข้อมูลจะไม่ถูกบันทึก', 'error');
         return;
     }
 
@@ -226,7 +190,7 @@ async function saveStateToFirebase() {
             updatedAt: new Date().toISOString()
         });
         console.log('✅ Saved to Firebase at', new Date().toLocaleTimeString());
-        showToast('บันทึกข้อมูลไปยัง Firebase สำเร็จ', 'success');
+        showToast('บันทึกไปยัง Firebase สำเร็จ', 'success');
     } catch (e) {
         console.error('Firebase save error:', e);
         showToast('เกิดข้อผิดพลาดในการบันทึกไปยัง Firebase: ' + e.message, 'error');
