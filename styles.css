@@ -896,6 +896,357 @@ body {
     }
 }
 
+/* ===== Leaderboard Section ===== */
+.leaderboard-section {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    margin-top: 24px;
+    box-shadow: var(--shadow);
+}
+
+.leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.leaderboard-header h3 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+}
+
+.leaderboard-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.view-toggle {
+    border: 2px solid var(--gray-200);
+    background: white;
+}
+
+.view-toggle.active {
+    background: var(--gradient-primary);
+    color: white;
+    border-color: transparent;
+}
+
+/* Podium Styles */
+.leaderboard-view {
+    position: relative;
+    overflow: hidden;
+}
+
+.podium-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 60px 20px 20px;
+    margin-bottom: 40px;
+}
+
+.podium-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: slideUp 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+.podium-item.first {
+    animation-delay: 0.3s;
+}
+
+.podium-item.second {
+    animation-delay: 0.5s;
+}
+
+.podium-item.third {
+    animation-delay: 0.7s;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.podium-avatar {
+    font-size: 3rem;
+    margin-bottom: 8px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.podium-rank {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.podium-item.first .podium-rank {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+}
+
+.podium-item.second .podium-rank {
+    background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+}
+
+.podium-item.third .podium-rank {
+    background: linear-gradient(135deg, #CD7F32, #B8860B);
+}
+
+.podium-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--gray-800);
+    text-align: center;
+    max-width: 120px;
+}
+
+.podium-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.podium-grade {
+    margin-top: 4px;
+}
+
+.podium-stand {
+    width: 120px;
+    border-radius: 12px 12px 0 0;
+    margin-top: 16px;
+}
+
+.first-stand {
+    height: 120px;
+    background: linear-gradient(180deg, #FFD700, #FFA500);
+    box-shadow: 0 -10px 30px rgba(255, 215, 0, 0.4);
+}
+
+.second-stand {
+    height: 90px;
+    background: linear-gradient(180deg, #C0C0C0, #888888);
+    box-shadow: 0 -10px 30px rgba(192, 192, 192, 0.4);
+}
+
+.third-stand {
+    height: 60px;
+    background: linear-gradient(180deg, #CD7F32, #8B4513);
+    box-shadow: 0 -10px 30px rgba(205, 127, 50, 0.4);
+}
+
+/* Grade Badges */
+.grade-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.grade-A {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.grade-B {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.grade-C {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.grade-D {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+}
+
+.grade-F {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+/* Ranking List */
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--gradient-soft);
+    border-radius: var(--radius);
+    animation: slideIn 0.5s ease-out;
+    animation-fill-mode: both;
+    transition: var(--transition);
+}
+
+.ranking-item:hover {
+    transform: translateX(8px);
+    box-shadow: var(--shadow);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.ranking-position {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--gray-600);
+}
+
+.ranking-info {
+    flex: 1;
+}
+
+.ranking-name {
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+}
+
+.ranking-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ranking-progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-out;
+}
+
+.ranking-score {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--gray-800);
+    min-width: 80px;
+    text-align: center;
+}
+
+.ranking-grade {
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Confetti Animation */
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    animation: confettiFall 3s ease-out forwards;
+}
+
+@keyframes confettiFall {
+    0% {
+        opacity: 1;
+        transform: translateY(-100%) rotate(0deg);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(100vh) rotate(720deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .podium-container {
+        flex-direction: row;
+        gap: 10px;
+        padding: 40px 10px 10px;
+    }
+
+    .podium-stand {
+        width: 80px;
+    }
+
+    .podium-avatar {
+        font-size: 2rem;
+    }
+
+    .podium-name {
+        font-size: 0.9rem;
+        max-width: 80px;
+    }
+
+    .ranking-item {
+        flex-wrap: wrap;
+    }
+}
+
 /* Print Styles */
 @media print {
 

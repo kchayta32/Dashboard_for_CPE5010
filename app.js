@@ -365,11 +365,170 @@ function getAssignmentStats(assignmentId) {
     };
 }
 
+// ===== Leaderboard Functions =====
+
+function calculateGroupTotalScore(groupId) {
+    let totalScore = 0;
+    let totalMaxScore = 0;
+
+    state.assignments.forEach(assignment => {
+        const key = `${groupId}-${assignment.id}`;
+        const submission = state.submissions[key];
+        if (submission && submission.score !== null) {
+            totalScore += submission.score;
+            totalMaxScore += assignment.maxScore;
+        }
+    });
+
+    return { totalScore, totalMaxScore };
+}
+
+function getGrade(percentage) {
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B';
+    if (percentage >= 60) return 'C';
+    if (percentage >= 50) return 'D';
+    return 'F';
+}
+
+function getGradeColor(grade) {
+    const colors = {
+        'A': '#10b981',
+        'B': '#3b82f6',
+        'C': '#f59e0b',
+        'D': '#f97316',
+        'F': '#ef4444'
+    };
+    return colors[grade] || '#6b7280';
+}
+
+function getRankings() {
+    const rankings = state.groups.map(group => {
+        const { totalScore, totalMaxScore } = calculateGroupTotalScore(group.id);
+        const percentage = totalMaxScore > 0 ? (totalScore / totalMaxScore) * 100 : 0;
+        const grade = getGrade(percentage);
+
+        return {
+            id: group.id,
+            name: `กลุ่ม ${group.id}`,
+            members: group.members.join(', '),
+            totalScore,
+            totalMaxScore,
+            percentage,
+            grade
+        };
+    });
+
+    // Sort by total score descending
+    rankings.sort((a, b) => b.totalScore - a.totalScore);
+
+    return rankings;
+}
+
+function renderLeaderboard() {
+    const rankings = getRankings();
+
+    // Render Podium (Top 3)
+    for (let i = 1; i <= 3; i++) {
+        const podiumEl = document.getElementById(`podium${i}`);
+        if (!podiumEl) continue;
+
+        const rank = rankings[i - 1];
+        if (rank) {
+            podiumEl.querySelector('.podium-name').textContent = rank.name;
+            podiumEl.querySelector('.podium-score').textContent = `${rank.totalScore}/${rank.totalMaxScore}`;
+            podiumEl.querySelector('.podium-grade').innerHTML = `<span class="grade-badge grade-${rank.grade}">${rank.grade}</span>`;
+        }
+    }
+
+    // Render Ranking List (4th and below)
+    const rankingList = document.getElementById('rankingList');
+    if (!rankingList) return;
+
+    let html = '';
+    rankings.forEach((rank, index) => {
+        const delay = index * 0.1;
+        const position = index + 1;
+
+        html += `
+            <div class="ranking-item" style="animation-delay: ${delay}s;">
+                <div class="ranking-position">${position}</div>
+                <div class="ranking-info">
+                    <div class="ranking-name">${rank.name} (${rank.members.substring(0, 30)}${rank.members.length > 30 ? '...' : ''})</div>
+                    <div class="ranking-progress">
+                        <div class="ranking-progress-bar" style="width: ${rank.percentage}%; background: ${getGradeColor(rank.grade)};"></div>
+                    </div>
+                </div>
+                <div class="ranking-score">${rank.totalScore}/${rank.totalMaxScore}</div>
+                <div class="ranking-grade">
+                    <span class="grade-badge grade-${rank.grade}">${rank.grade}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    rankingList.innerHTML = html;
+}
+
+function toggleView(view) {
+    const tableView = document.querySelector('.groups-section .table-container');
+    const leaderboardView = document.getElementById('leaderboardView');
+    const btnTable = document.getElementById('btnTableView');
+    const btnLeaderboard = document.getElementById('btnLeaderboardView');
+
+    if (view === 'leaderboard') {
+        if (tableView) tableView.style.display = 'none';
+        if (leaderboardView) leaderboardView.style.display = 'block';
+        btnTable.classList.remove('active');
+        btnLeaderboard.classList.add('active');
+
+        // Render and trigger animations
+        renderLeaderboard();
+        triggerConfetti();
+    } else {
+        if (tableView) tableView.style.display = 'block';
+        if (leaderboardView) leaderboardView.style.display = 'none';
+        btnTable.classList.add('active');
+        btnLeaderboard.classList.remove('active');
+    }
+}
+
+function triggerConfetti() {
+    const container = document.getElementById('confettiContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+        // Random shape
+        if (Math.random() > 0.5) {
+            confetti.style.borderRadius = '50%';
+        }
+
+        container.appendChild(confetti);
+    }
+
+    // Clear confetti after animation
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 5000);
+}
+
 function render() {
     renderAssignmentTabs();
     renderCurrentAssignment();
     renderGroupsTable();
     renderStats();
+    renderLeaderboard();
 }
 
 // ===== Assignment Functions =====
