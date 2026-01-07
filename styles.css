@@ -164,6 +164,22 @@ body {
     color: var(--gray-500);
 }
 
+.refresh-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    margin-left: 8px;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.refresh-btn:hover {
+    background: var(--gray-100);
+    transform: rotate(180deg);
+}
+
 @keyframes pulse {
 
     0%,
